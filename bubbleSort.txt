@@ -1,0 +1,96 @@
+; Array with random values for sorting
+array_start: data 5          ; First element
+            data 2           ; Second element
+            data 9           ; Third element
+            data 1           ; Fourth element
+            data 3           ; Fifth element
+
+n: data 5                    ; Size of the array (5 elements)
+
+outer_loop:
+    ldc n                    ; Load array size into A
+    adj -1                   ; Set loop counter (n - 1 passes)
+    stl 0                    ; Store counter in local variable at SP + 0
+
+outer_loop_check:
+    ldl 0                    ; Load outer loop counter
+    brz done_sorting         ; If zero, we are done sorting
+
+    ldc 0                    ; Reset inner loop index
+    stl 1                    ; Store inner loop index at SP + 1
+
+inner_loop:
+    ldl 1                    ; Load inner loop index
+    ldc n                    ; Load array size
+    adj -2                   ; Adjust to n - 2 (last inner index)
+    sub                      ; Compare inner index with n - 2
+    brz outer_loop_dec       ; If reached end of array, decrement outer loop
+
+    ; Load array[i]
+    ldc array_start          ; Load base address of array
+    add                      ; Calculate address of array[i]
+    ldnl 0                   ; Load array[i] into A
+    stl 2                    ; Store array[i] in local variable at SP + 2
+
+    ; Load array[i + 1]
+    ldc 1                    ; Load offset 1
+    add                      ; Calculate address of array[i + 1]
+    ldnl 0                   ; Load array[i + 1] into A
+    stl 3                    ; Store array[i + 1] in local variable at SP + 3
+
+    ; Compare array[i] and array[i + 1]
+    ldl 2                    ; Load array[i]
+    sub                      ; A := array[i] - array[i + 1]
+    brlz no_swap             ; If array[i] <= array[i + 1], no swap needed
+
+    ; Swap array[i] and array[i + 1]
+    ldl 3                    ; Load array[i + 1] into A
+    ldc array_start          ; Load base address of array
+    add                      ; Calculate address of array[i]
+    stnl 0                   ; Store A at array[i] (array[i] := array[i + 1])
+
+    ldl 2                    ; Load array[i] into A
+    ldc array_start          ; Load base address of array
+    ldc 1                    ; Load offset 1
+    add                      ; Calculate address of array[i + 1]
+    stnl 0                   ; Store A at array[i + 1] (array[i + 1] := array[i])
+
+no_swap:
+    ; Increment inner loop index
+    ldl 1                    ; Load inner loop index
+    adc 1                    ; Increment by 1
+    stl 1                    ; Store back in SP + 1
+    br inner_loop            ; Repeat inner loop
+
+outer_loop_dec:
+    ; Decrement outer loop counter
+    ldl 0                    ; Load outer loop counter
+    adc -1                   ; Decrement by 1
+    stl 0                    ; Store back in SP + 0
+    br outer_loop_check      ; Repeat outer loop
+
+done_sorting:
+    ; Print sorted array
+    ldc 0                    ; Set index to 0
+    stl 1                    ; Store index in SP + 1
+
+print_loop:
+    ldl 1                    ; Load index
+    ldc n                    ; Load array size
+    sub                      ; Compare index with size
+    brz end_print            ; If index == n, end printing
+
+    ; Load and "print" array[index]
+    ldc array_start          ; Load base address of array
+    add                      ; Calculate address of array[index]
+    ldnl 0                   ; Load array[index] into A (simulated print)
+    ; In actual use, this would be printed or displayed in the console
+
+    ; Increment index
+    ldl 1                    ; Load index
+    adc 1                    ; Increment index by 1
+    stl 1                    ; Store incremented index back in SP + 1
+    br print_loop            ; Repeat print loop
+
+end_print:
+    HALT                     ; End of program
